@@ -1,4 +1,10 @@
 import { useRef, useEffect } from "react";
+import {
+  drawHex,
+  drawHexCoordinates,
+  drawBlueCircle,
+  drawImageOnLoad,
+} from "../utils/drawingUtils";
 
 const HexGrid = ({
   width,
@@ -31,19 +37,6 @@ const HexGrid = ({
     const hexWidth = 2 * hexSize;
     const hexHeight = Math.sqrt(3) * hexSize;
 
-    const drawHex = (x: number, y: number) => {
-      ctx.beginPath();
-      ctx.strokeStyle = "black";
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
-        const x_i = x + hexSize * Math.cos(angle);
-        const y_i = y + hexSize * Math.sin(angle);
-        ctx.lineTo(x_i, y_i);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    };
-
     const drawHexGrid = () => {
       // clear the whole grid
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -54,13 +47,7 @@ const HexGrid = ({
       const centerY = canvasHeight / 2;
 
       // Draw background image
-      const img = new Image();
-      img.src = image.url;
-      img.onload = () => {
-        const imgX = centerX - image.width / 2;
-        const imgY = centerY - image.height / 2 + (image.offsetY || 0);
-        ctx.drawImage(img, imgX, imgY, image.width, image.height);
-
+      drawImageOnLoad(ctx, image, centerX, centerY, () => {
         // Calculate the number of hexes to draw
         const cols = Math.ceil(canvasWidth / (hexWidth * 0.75));
         const rows = Math.ceil(canvasHeight / hexHeight);
@@ -69,8 +56,8 @@ const HexGrid = ({
           for (let col = -cols; col < cols; col++) {
             const x = centerX + col * (hexWidth * 0.75);
             const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
-            drawHex(x, y);
-            drawHexCoordinates(x, y, col, row);
+            drawHex(ctx, x, y, hexSize);
+            drawHexCoordinates(ctx, x, y, col, row, hexSize);
           }
         }
 
@@ -78,32 +65,9 @@ const HexGrid = ({
         coordinates.forEach(({ col, row }) => {
           const x = centerX + col * (hexWidth * 0.75);
           const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
-          drawBlueCircle(x, y);
+          drawBlueCircle(ctx, x, y, hexSize);
         });
-      };
-    };
-
-    const drawHexCoordinates = (
-      x: number,
-      y: number,
-      col: number,
-      row: number
-    ) => {
-      ctx.font = "10px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const text = `(${col}, ${row})`;
-      ctx.fillStyle = "black";
-      ctx.fillText(text, x, y);
-    };
-
-    const drawBlueCircle = (x: number, y: number) => {
-      ctx.beginPath();
-      ctx.arc(x, y, hexSize / 4, 0, 2 * Math.PI);
-      ctx.fillStyle = "blue";
-      ctx.fill();
-      ctx.strokeStyle = "blue";
-      ctx.stroke();
+      });
     };
 
     drawHexGrid();
