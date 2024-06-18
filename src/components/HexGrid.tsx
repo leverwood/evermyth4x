@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import {
   drawRevealedHex,
   drawHexCoordinates,
@@ -7,25 +7,17 @@ import {
   fillInHex,
 } from "../utils/drawingUtils";
 import { getHexAtMousePosition } from "../utils/interactionUtils";
-import { useHexContext } from "./HexContext";
+import { useHexContext } from "../contexts/HexContext";
 
 const HexGrid = ({
   width,
   height,
   hexSize,
-  coordinates,
   image,
 }: {
   width: number;
   height: number;
   hexSize: number;
-  coordinates: {
-    col: number;
-    row: number;
-    revealed?: boolean;
-    owned?: boolean;
-    text?: string;
-  }[];
   image: {
     url: string;
     width: number;
@@ -35,7 +27,8 @@ const HexGrid = ({
   };
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { hoveredHex, setHoveredHex } = useHexContext();
+  const { hoveredHex, setHoveredHex, setClickedHex, coordinates } =
+    useHexContext();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -129,14 +122,33 @@ const HexGrid = ({
       );
       setHoveredHex({ col, row });
     };
+    const handleMouseClick = (event: MouseEvent) => {
+      const { col, row } = getHexAtMousePosition(
+        canvas,
+        event.clientX,
+        event.clientY,
+        hexSize
+      );
+      setClickedHex({ col, row });
+    };
     canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("click", handleMouseClick);
 
     drawHexGrid();
 
     return () => {
       canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("click", handleMouseClick);
     };
-  }, [coordinates, hexSize, hoveredHex?.col, hoveredHex?.row, image]);
+  }, [
+    coordinates,
+    hexSize,
+    hoveredHex?.col,
+    hoveredHex?.row,
+    image,
+    setClickedHex,
+    setHoveredHex,
+  ]);
 
   return <canvas ref={canvasRef} width={width} height={height} />;
 };
