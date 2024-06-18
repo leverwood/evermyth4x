@@ -10,13 +10,14 @@ const HexGrid = ({
   width: number;
   height: number;
   hexSize: number;
-  coordinates: {
-    col: number;
-    row: number;
-    drawCircle?: boolean;
-    imageSrc?: string;
-  }[];
-  image: { url: string; width: number; height: number };
+  coordinates: { col: number; row: number }[];
+  image: {
+    url: string;
+    width: number;
+    height: number;
+    offsetX?: number;
+    offsetY?: number;
+  };
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -27,15 +28,14 @@ const HexGrid = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const hexWidth = Math.sqrt(3) * hexSize;
-    const hexHeight = 2 * hexSize;
+    const hexWidth = 2 * hexSize;
+    const hexHeight = Math.sqrt(3) * hexSize;
 
     const drawHex = (x: number, y: number) => {
       ctx.beginPath();
       ctx.strokeStyle = "black";
-      ctx.lineWidth = 0.25;
       for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i + Math.PI / 2; // Adding Math.PI / 2 to rotate by 90 degrees
+        const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
         const x_i = x + hexSize * Math.cos(angle);
         const y_i = y + hexSize * Math.sin(angle);
         ctx.lineTo(x_i, y_i);
@@ -58,17 +58,17 @@ const HexGrid = ({
       img.src = image.url;
       img.onload = () => {
         const imgX = centerX - image.width / 2;
-        const imgY = centerY - image.height / 2;
+        const imgY = centerY - image.height / 2 + (image.offsetY || 0);
         ctx.drawImage(img, imgX, imgY, image.width, image.height);
 
         // Calculate the number of hexes to draw
-        const cols = Math.ceil(canvasWidth / hexWidth);
-        const rows = Math.ceil(canvasHeight / (hexHeight * 0.75));
+        const cols = Math.ceil(canvasWidth / (hexWidth * 0.75));
+        const rows = Math.ceil(canvasHeight / hexHeight);
 
         for (let row = -rows; row < rows; row++) {
           for (let col = -cols; col < cols; col++) {
-            const x = centerX + col * hexWidth + ((row % 2) * hexWidth) / 2;
-            const y = centerY + row * (hexHeight * 0.75);
+            const x = centerX + col * (hexWidth * 0.75);
+            const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
             drawHex(x, y);
             drawHexCoordinates(x, y, col, row);
           }
@@ -76,8 +76,8 @@ const HexGrid = ({
 
         // Draw blue circles at specified coordinates
         coordinates.forEach(({ col, row }) => {
-          const x = centerX + col * hexWidth + ((row % 2) * hexWidth) / 2;
-          const y = centerY + row * (hexHeight * 0.75);
+          const x = centerX + col * (hexWidth * 0.75);
+          const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
           drawBlueCircle(x, y);
         });
       };
@@ -94,7 +94,7 @@ const HexGrid = ({
       ctx.textBaseline = "middle";
       const text = `(${col}, ${row})`;
       ctx.fillStyle = "black";
-      ctx.fillText(text, x, y + hexSize / 2);
+      ctx.fillText(text, x, y);
     };
 
     const drawBlueCircle = (x: number, y: number) => {
@@ -106,28 +106,8 @@ const HexGrid = ({
       ctx.stroke();
     };
 
-    const drawHexBackgroundImage = (x: number, y: number, imageSrc: string) => {
-      const img = new Image();
-      img.src = imageSrc;
-      img.onload = () => {
-        const pattern = ctx.createPattern(img, "repeat");
-        if (pattern) {
-          ctx.fillStyle = pattern;
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-            const angle = (Math.PI / 3) * i + Math.PI / 2;
-            const x_i = x + hexSize * Math.cos(angle);
-            const y_i = y + hexSize * Math.sin(angle);
-            ctx.lineTo(x_i, y_i);
-          }
-          ctx.closePath();
-          ctx.fill();
-        }
-      };
-    };
-
     drawHexGrid();
-  }, [coordinates, hexSize, width, height]);
+  }, [coordinates, hexSize, image]);
 
   return <canvas ref={canvasRef} width={width} height={height} />;
 };
