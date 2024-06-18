@@ -5,6 +5,7 @@ const HexGrid = ({
   height,
   hexSize,
   coordinates,
+  image,
 }: {
   width: number;
   height: number;
@@ -15,6 +16,7 @@ const HexGrid = ({
     drawCircle?: boolean;
     imageSrc?: string;
   }[];
+  image: { url: string; width: number; height: number };
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -31,6 +33,7 @@ const HexGrid = ({
     const drawHex = (x: number, y: number) => {
       ctx.beginPath();
       ctx.strokeStyle = "black";
+      ctx.lineWidth = 0.25;
       for (let i = 0; i < 6; i++) {
         const angle = (Math.PI / 3) * i + Math.PI / 2; // Adding Math.PI / 2 to rotate by 90 degrees
         const x_i = x + hexSize * Math.cos(angle);
@@ -50,32 +53,34 @@ const HexGrid = ({
       const centerX = canvasWidth / 2;
       const centerY = canvasHeight / 2;
 
-      // Calculate the number of hexes to draw
-      const cols = Math.ceil(canvasWidth / hexWidth);
-      const rows = Math.ceil(canvasHeight / (hexHeight * 0.75));
+      // Draw background image
+      const img = new Image();
+      img.src = image.url;
+      img.onload = () => {
+        const imgX = centerX - image.width / 2;
+        const imgY = centerY - image.height / 2;
+        ctx.drawImage(img, imgX, imgY, image.width, image.height);
 
-      for (let row = -rows; row < rows; row++) {
-        for (let col = -cols; col < cols; col++) {
+        // Calculate the number of hexes to draw
+        const cols = Math.ceil(canvasWidth / hexWidth);
+        const rows = Math.ceil(canvasHeight / (hexHeight * 0.75));
+
+        for (let row = -rows; row < rows; row++) {
+          for (let col = -cols; col < cols; col++) {
+            const x = centerX + col * hexWidth + ((row % 2) * hexWidth) / 2;
+            const y = centerY + row * (hexHeight * 0.75);
+            drawHex(x, y);
+            drawHexCoordinates(x, y, col, row);
+          }
+        }
+
+        // Draw blue circles at specified coordinates
+        coordinates.forEach(({ col, row }) => {
           const x = centerX + col * hexWidth + ((row % 2) * hexWidth) / 2;
           const y = centerY + row * (hexHeight * 0.75);
-          drawHex(x, y);
-          drawHexCoordinates(x, y, col, row);
-        }
-      }
-
-      // Draw blue circles and images at specified coordinates
-      coordinates.forEach(({ col, row, drawCircle, imageSrc }) => {
-        const x = centerX + col * hexWidth + ((row % 2) * hexWidth) / 2;
-        const y = centerY + row * (hexHeight * 0.75);
-
-        if (imageSrc) {
-          drawHexBackgroundImage(x, y, imageSrc);
-        }
-
-        if (drawCircle) {
           drawBlueCircle(x, y);
-        }
-      });
+        });
+      };
     };
 
     const drawHexCoordinates = (
