@@ -1,11 +1,15 @@
-export const drawHex = (
+const DEBUG_MODE = true;
+
+export const drawRevealedHex = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  hexSize: number
+  hexSize: number,
+  owned: boolean
 ) => {
   ctx.beginPath();
-  ctx.strokeStyle = "black";
+  // Set the fill color to white, but with half opacity
+  ctx.fillStyle = "rgba(255, 255, 255, 1)";
   for (let i = 0; i < 6; i++) {
     const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
     const x_i = x + hexSize * Math.cos(angle);
@@ -13,6 +17,40 @@ export const drawHex = (
     ctx.lineTo(x_i, y_i);
   }
   ctx.closePath();
+  if (owned) {
+    // opaque purple fill
+    ctx.fillStyle = "rgba(128, 0, 128, .25)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(128, 0, 128, 1)";
+    ctx.stroke();
+  } else {
+    if (DEBUG_MODE) {
+      ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+      ctx.stroke();
+    }
+  }
+};
+
+export const fillInHex = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  hexSize: number
+) => {
+  ctx.beginPath();
+  // Set the fill color to white, but with half opacity
+  ctx.fillStyle = DEBUG_MODE
+    ? "rgba(255, 255, 255, 0.5)"
+    : "rgba(255, 255, 255, 1)";
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
+    const x_i = x + hexSize * Math.cos(angle);
+    const y_i = y + hexSize * Math.sin(angle);
+    ctx.lineTo(x_i, y_i);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0, 0, 0, .1)";
   ctx.stroke();
 };
 
@@ -29,21 +67,35 @@ export const drawHexCoordinates = (
   ctx.textBaseline = "middle";
   const text = `(${col}, ${row})`;
   ctx.fillStyle = "black";
-  ctx.fillText(text, x, y);
+  if (DEBUG_MODE) {
+    ctx.fillText(text, x, y + hexSize / 2);
+  }
 };
 
-export const drawBlueCircle = (
+export const drawText = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  hexSize: number
+  hexSize: number,
+  text: string
 ) => {
+  const circleY = y + hexSize / 3; // Keep the y-coordinate the same for both circle and text
+  const radius = hexSize / 3;
+
+  // Draw the circle
   ctx.beginPath();
-  ctx.arc(x, y, hexSize / 4, 0, 2 * Math.PI);
-  ctx.fillStyle = "blue";
+  ctx.arc(x, circleY, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = "white";
   ctx.fill();
-  ctx.strokeStyle = "blue";
+  ctx.strokeStyle = "black";
   ctx.stroke();
+
+  // Draw the text
+  ctx.fillStyle = "black";
+  ctx.font = `bold ${radius}px Arial`; // Adjust the font size to the radius of the circle
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x - 0.5, circleY + 0.5);
 };
 
 export const drawImageOnLoad = (
