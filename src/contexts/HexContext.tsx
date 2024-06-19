@@ -12,6 +12,7 @@ export interface HexCoordinate {
   row: number;
   revealed?: boolean;
   owned?: boolean;
+  primalumina?: boolean;
   text?: string;
 }
 

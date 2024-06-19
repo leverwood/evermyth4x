@@ -1,5 +1,6 @@
 // src/components/EditHex.tsx
 import React, { useEffect, useState } from "react";
+import { Form, Container } from "react-bootstrap";
 import { HexCoordinate, useHexContext } from "../contexts/HexContext";
 
 const EditHex: React.FC = () => {
@@ -9,6 +10,7 @@ const EditHex: React.FC = () => {
     row: clickedHex?.row || 0,
     revealed: false,
     owned: false,
+    primalumina: false,
     text: "",
   });
 
@@ -27,16 +29,16 @@ const EditHex: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setHexData((prev) => ({
-      ...prev,
+    const updatedHexData = {
+      ...hexData,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+    };
+    setHexData(updatedHexData);
 
-  const handleSave = () => {
+    // Update coordinates immediately
     const updatedCoordinates = coordinates.map((coord) =>
       coord.col === clickedHex.col && coord.row === clickedHex.row
-        ? { ...coord, ...hexData }
+        ? { ...coord, ...updatedHexData }
         : coord
     );
     if (
@@ -44,57 +46,55 @@ const EditHex: React.FC = () => {
         (coord) => coord.col === clickedHex.col && coord.row === clickedHex.row
       )
     ) {
-      updatedCoordinates.push(hexData);
+      updatedCoordinates.push(updatedHexData);
     }
     updateCoordinates(updatedCoordinates);
   };
 
-  // if (!clickedHex) return null;
-
   return (
-    <div>
+    <Container style={{ maxWidth: 500 }}>
       <h3>
         Editing Hex ({clickedHex.col}, {clickedHex.row})
       </h3>
-      <form>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              name="revealed"
-              checked={hexData.revealed}
-              onChange={handleChange}
-            />
-            Revealed
-          </label>
-        </div>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              name="owned"
-              checked={hexData.owned}
-              onChange={handleChange}
-            />
-            Owned
-          </label>
-        </div>
-        <div>
-          <label>
-            Text
-            <input
-              type="text"
-              name="text"
-              value={hexData.text}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
-        <button type="button" onClick={handleSave}>
-          Save
-        </button>
-      </form>
-    </div>
+      <Form>
+        <Form.Group controlId="formRevealed">
+          <Form.Check
+            type="checkbox"
+            name="revealed"
+            label="Revealed"
+            checked={hexData.revealed}
+            onChange={handleChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="formOwned">
+          <Form.Check
+            type="checkbox"
+            name="owned"
+            label="Owned"
+            checked={hexData.owned}
+            onChange={handleChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="formOwned">
+          <Form.Check
+            type="checkbox"
+            name="primalumina"
+            label="Primalumina"
+            checked={hexData.primalumina}
+            onChange={handleChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="formText">
+          <Form.Label>Text</Form.Label>
+          <Form.Control
+            type="text"
+            name="text"
+            value={hexData.text}
+            onChange={handleChange}
+          />
+        </Form.Group>
+      </Form>
+    </Container>
   );
 };
 

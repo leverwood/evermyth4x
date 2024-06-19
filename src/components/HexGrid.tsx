@@ -12,7 +12,7 @@ import {
   getHexAtMousePosition,
   getHexCoordsToXY,
 } from "../utils/interactionUtils";
-import { useHexContext } from "../contexts/HexContext";
+import { HexCoordinate, useHexContext } from "../contexts/HexContext";
 
 const HexGrid = ({
   width,
@@ -73,13 +73,7 @@ const HexGrid = ({
             col: number;
             row: number;
             isHovered: boolean;
-            coordData?: {
-              col: number;
-              row: number;
-              revealed?: boolean;
-              owned?: boolean;
-              text?: string;
-            };
+            coordData?: HexCoordinate;
           }) => void
         ) => {
           for (let row = -rows; row < rows; row++) {
@@ -103,12 +97,15 @@ const HexGrid = ({
           drawHexCoordinates(ctx, x, y, col, row, hexSize);
         });
 
+        // draw revealed info
         loopHexes(({ x, y, col, row, coordData }) => {
           if (!coordData?.revealed) return;
           drawRevealedHex(ctx, x, y, hexSize, !!coordData.owned);
+
           drawHexCoordinates(ctx, x, y, col, row, hexSize);
         });
 
+        // draw text
         loopHexes(({ x, y, col, row, coordData }) => {
           if (coordData?.text) {
             drawText(ctx, x, y, hexSize, coordData.text);
