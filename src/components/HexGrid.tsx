@@ -5,8 +5,13 @@ import {
   drawText,
   drawImageOnLoad,
   fillInHex,
+  drawHexHighlight,
+  drawHexOutline,
 } from "../utils/drawingUtils";
-import { getHexAtMousePosition } from "../utils/interactionUtils";
+import {
+  getHexAtMousePosition,
+  getHexCoordsToXY,
+} from "../utils/interactionUtils";
 import { useHexContext } from "../contexts/HexContext";
 
 const HexGrid = ({
@@ -27,7 +32,7 @@ const HexGrid = ({
   };
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { hoveredHex, setHoveredHex, setClickedHex, coordinates } =
+  const { hoveredHex, setHoveredHex, clickedHex, setClickedHex, coordinates } =
     useHexContext();
 
   useEffect(() => {
@@ -79,8 +84,7 @@ const HexGrid = ({
         ) => {
           for (let row = -rows; row < rows; row++) {
             for (let col = -cols; col < cols; col++) {
-              const x = centerX + col * (hexWidth * 0.75);
-              const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
+              const { x, y } = getHexCoordsToXY(canvas, col, row, hexSize);
               const coordData = coordinates.find(
                 ({ col: c, row: r }) => col === c && row === r
               );
@@ -91,9 +95,9 @@ const HexGrid = ({
           }
         };
 
-        loopHexes(({ x, y, col, row, coordData, isHovered }) => {
+        loopHexes(({ x, y, col, row, coordData }) => {
           // pass doFill as false when the coordinates are revealed
-          if (!coordData?.revealed && !isHovered) {
+          if (!coordData?.revealed) {
             fillInHex(ctx, x, y, hexSize);
           }
           drawHexCoordinates(ctx, x, y, col, row, hexSize);
@@ -110,6 +114,26 @@ const HexGrid = ({
             drawText(ctx, x, y, hexSize, coordData.text);
           }
         });
+
+        if (hoveredHex) {
+          const { x, y } = getHexCoordsToXY(
+            canvas,
+            hoveredHex.col,
+            hoveredHex.row,
+            hexSize
+          );
+          drawHexHighlight(ctx, x, y, hexSize);
+        }
+
+        if (clickedHex) {
+          const { x, y } = getHexCoordsToXY(
+            canvas,
+            clickedHex.col,
+            clickedHex.row,
+            hexSize
+          );
+          drawHexOutline(ctx, x, y, hexSize);
+        }
       });
     };
 
@@ -141,10 +165,10 @@ const HexGrid = ({
       canvas.removeEventListener("click", handleMouseClick);
     };
   }, [
+    clickedHex,
     coordinates,
     hexSize,
-    hoveredHex?.col,
-    hoveredHex?.row,
+    hoveredHex,
     image,
     setClickedHex,
     setHoveredHex,

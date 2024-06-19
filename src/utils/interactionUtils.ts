@@ -22,3 +22,22 @@ export const getHexAtMousePosition = (
 
   return { col, row };
 };
+
+
+export const getHexCoordsToXY = (
+  canvas: HTMLCanvasElement,
+  col: number,
+  row: number,
+  hexSize: number
+): { x: number; y: number } => {
+  const hexWidth = 2 * hexSize;
+  const hexHeight = Math.sqrt(3) * hexSize;
+
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+
+  const x = centerX + col * (hexWidth * 0.75);
+  const y = centerY + row * hexHeight + (col % 2) * (hexHeight / 2);
+
+  return { x, y };
+};

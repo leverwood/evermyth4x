@@ -1,4 +1,20 @@
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
+
+const drawHex = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  hexSize: number
+) => {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
+    const x_i = x + hexSize * Math.cos(angle);
+    const y_i = y + hexSize * Math.sin(angle);
+    ctx.lineTo(x_i, y_i);
+  }
+  ctx.closePath();
+};
 
 export const drawRevealedHex = (
   ctx: CanvasRenderingContext2D,
@@ -37,20 +53,37 @@ export const fillInHex = (
   y: number,
   hexSize: number
 ) => {
-  ctx.beginPath();
   // Set the fill color to white, but with half opacity
+  drawHex(ctx, x, y, hexSize);
   ctx.fillStyle = DEBUG_MODE
     ? "rgba(255, 255, 255, 0.5)"
     : "rgba(255, 255, 255, 1)";
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i; // No rotation needed for flat-topped hexagons
-    const x_i = x + hexSize * Math.cos(angle);
-    const y_i = y + hexSize * Math.sin(angle);
-    ctx.lineTo(x_i, y_i);
-  }
-  ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = "rgba(0, 0, 0, .1)";
+  ctx.stroke();
+};
+
+export const drawHexHighlight = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  hexSize: number
+) => {
+  drawHex(ctx, x, y, hexSize);
+  // Set the fill color to yellow, but with half opacity
+  ctx.fillStyle = "rgba(255, 255, 0, 0.1)";
+  ctx.fill();
+};
+
+export const drawHexOutline = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  hexSize: number
+) => {
+  drawHex(ctx, x, y, hexSize);
+  // Set the fill color to yellow, but with half opacity
+  ctx.strokeStyle = "red";
   ctx.stroke();
 };
 
